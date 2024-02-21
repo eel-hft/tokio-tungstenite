@@ -1,6 +1,8 @@
 //! Connection helper.
-use tokio::net::TcpStream;
 
+use monoio::io::IntoPollIo;
+use monoio::net::tcp::stream_poll::TcpStreamPoll;
+use monoio::net::TcpStream;
 use tungstenite::{
     error::{Error, UrlError},
     handshake::client::{Request, Response},
@@ -12,7 +14,7 @@ use crate::{domain, stream::MaybeTlsStream, Connector, IntoClientRequest, WebSoc
 /// Connect to a given URL.
 pub async fn connect_async<R>(
     request: R,
-) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response), Error>
+) -> Result<(WebSocketStream<MaybeTlsStream<TcpStreamPoll>>, Response), Error>
 where
     R: IntoClientRequest + Unpin,
 {
@@ -27,7 +29,7 @@ pub async fn connect_async_with_config<R>(
     request: R,
     config: Option<WebSocketConfig>,
     disable_nagle: bool,
-) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response), Error>
+) -> Result<(WebSocketStream<MaybeTlsStream<TcpStreamPoll>>, Response), Error>
 where
     R: IntoClientRequest + Unpin,
 {
@@ -45,7 +47,7 @@ pub async fn connect_async_tls_with_config<R>(
     config: Option<WebSocketConfig>,
     disable_nagle: bool,
     connector: Option<Connector>,
-) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response), Error>
+) -> Result<(WebSocketStream<MaybeTlsStream<TcpStreamPoll>>, Response), Error>
 where
     R: IntoClientRequest + Unpin,
 {
@@ -57,7 +59,7 @@ async fn connect(
     config: Option<WebSocketConfig>,
     disable_nagle: bool,
     connector: Option<Connector>,
-) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response), Error> {
+) -> Result<(WebSocketStream<MaybeTlsStream<TcpStreamPoll>>, Response), Error> {
     let domain = domain(&request)?;
     let port = request
         .uri()
@@ -70,7 +72,7 @@ async fn connect(
         .ok_or(Error::Url(UrlError::UnsupportedUrlScheme))?;
 
     let addr = format!("{domain}:{port}");
-    let socket = TcpStream::connect(addr).await.map_err(Error::Io)?;
+    let socket = TcpStream::connect(addr).await.map_err(Error::Io)?.into_poll_io()?;
 
     if disable_nagle {
         socket.set_nodelay(true)?;

@@ -44,7 +44,7 @@ mod encryption {
             tls_connector: Option<TlsConnector>,
         ) -> Result<MaybeTlsStream<S>, Error>
         where
-            S: 'static + AsyncRead + AsyncWrite + Send + Unpin,
+            S: 'static + AsyncRead + AsyncWrite  + Unpin,
         {
             match mode {
                 Mode::Plain => Ok(MaybeTlsStream::Plain(socket)),
@@ -83,7 +83,7 @@ mod encryption {
             tls_connector: Option<Arc<ClientConfig>>,
         ) -> Result<MaybeTlsStream<S>, Error>
         where
-            S: 'static + AsyncRead + AsyncWrite + Send + Unpin,
+            S: 'static + AsyncRead + AsyncWrite + Unpin,
         {
             match mode {
                 Mode::Plain => Ok(MaybeTlsStream::Plain(socket)),
@@ -140,7 +140,7 @@ mod encryption {
 
         pub async fn wrap_stream<S>(socket: S, mode: Mode) -> Result<MaybeTlsStream<S>, Error>
         where
-            S: 'static + AsyncRead + AsyncWrite + Send + Unpin,
+            S: 'static + AsyncRead + AsyncWrite + Unpin,
         {
             match mode {
                 Mode::Plain => Ok(MaybeTlsStream::Plain(socket)),
@@ -159,7 +159,7 @@ pub async fn client_async_tls<R, S>(
 ) -> Result<(WebSocketStream<MaybeTlsStream<S>>, Response), Error>
 where
     R: IntoClientRequest + Unpin,
-    S: 'static + AsyncRead + AsyncWrite + Send + Unpin,
+    S: 'static + AsyncRead + AsyncWrite + Unpin,
     MaybeTlsStream<S>: Unpin,
 {
     client_async_tls_with_config(request, stream, None, None).await
@@ -178,7 +178,7 @@ pub async fn client_async_tls_with_config<R, S>(
 ) -> Result<(WebSocketStream<MaybeTlsStream<S>>, Response), Error>
 where
     R: IntoClientRequest + Unpin,
-    S: 'static + AsyncRead + AsyncWrite + Send + Unpin,
+    S: 'static + AsyncRead + AsyncWrite + Unpin,
     MaybeTlsStream<S>: Unpin,
 {
     let request = request.into_client_request()?;
